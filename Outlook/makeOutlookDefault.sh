@@ -5,9 +5,9 @@
 #   Name:           makeOutlookDefault
 #
 #   Created by:     Kieran Koehnlein
-#   Last Updated:   3/21/2017
+#   Last Updated:   4/10/2017
 #
-#   Description:    Makes Outlook the default handler for various email-related 
+#   Description:    Makes Outlook the default handler for various email-related
 #                   files and protocols
 #
 ################################################################################
@@ -36,7 +36,7 @@ while true; do
 
     result=$(/usr/libexec/plistbuddy -c "print:LSHandlers:$i" "$plistPath">/dev/null 2>&1)
     commandResult=$?
-    
+
     if [ $commandResult -ne 0 ]; then # Check if result command had an error -- this is when we want to stop
         if $DEBUG; then echo "Command Error Number $dnecount"; fi #DEBUG
         ((dnecount++))
@@ -45,13 +45,13 @@ while true; do
             break
         fi
     else
-    
+
         dnecount=0;
         scheme=$(/usr/libexec/plistbuddy -c "print:LSHandlers:$i" "/Users/kieran.koehnlein/Library/Preferences/com.apple.LaunchServices/com.apple.launchservices.secure.plist" | grep -m1 "LSHandlerURLScheme" | cut -d"=" -f 2 | sed 's/ //g')
         contentType=$(/usr/libexec/plistbuddy -c "print:LSHandlers:$i" "/Users/kieran.koehnlein/Library/Preferences/com.apple.LaunchServices/com.apple.launchservices.secure.plist" | grep -m1 "LSHandlerContentType" | cut -d"=" -f 2 | sed 's/ //g')
         role=$(/usr/libexec/plistbuddy -c "print:LSHandlers:$i" "/Users/kieran.koehnlein/Library/Preferences/com.apple.LaunchServices/com.apple.launchservices.secure.plist" | grep -m1 "LSHandlerRoleAll" | cut -d"=" -f 2 | sed 's/ //g')
 
-        if [[ " ${services[@]} " =~ " ${scheme} " ]] || [[ " ${services[@]} " =~ " ${contentType} " ]]; then # Check if scheme is in our scheme array 
+        if [[ " ${services[@]} " =~ " ${scheme} " ]] || [[ " ${services[@]} " =~ " ${contentType} " ]]; then # Check if scheme is in our scheme array
             if $DEBUG; then echo "Scheme Found: $scheme. Deleting..."; fi #DEBUG
             if $DEBUG_DRYRUN; then
                 echo "Dry run, not deleting entries..." # donothing
@@ -108,7 +108,7 @@ else
     /usr/libexec/plistbuddy -c "add:LSHandlers:${i}:LSHandlerContentType string com.microsoft.outlook16.icalendar" "$plistPath"
     /usr/libexec/plistbuddy -c "add:LSHandlers:${i}:LSHandlerRoleAll string com.microsoft.outlook" "$plistPath"
     #/usr/libexec/plistbuddy -c "add:LSHandlers:${i}:LSHandlerPreferredVersions:LSHandlerRoleAll string -" "$plistPath"
-    
+
     if $DEBUG; then
         echo "!!!!!!!!!!  LIST AFTER !!!!!!!!!!"
         /usr/libexec/plistbuddy -c "print:LSHandlers" "$plistPath"

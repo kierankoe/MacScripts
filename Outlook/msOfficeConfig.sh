@@ -3,23 +3,23 @@
 ################################################################################
 #
 #   Name:           Microsoft Office Configuration Script
-#   
-#   Created by:     Kieran Koehnlein
-#   Last Updated:   3/21/2017           
 #
-#   Description:    Sets office configuration options to be used in conjunction 
+#   Created by:     Kieran Koehnlein
+#   Last Updated:   3/21/2017
+#
+#   Description:    Sets office configuration options to be used in conjunction
 #                   with the MAUCacheServer Configuration Profile
 #
 ################################################################################
 
 # Trust Micsoroft Auto Update app
 if [ -e "/Library/Application Support/Microsoft/MAU2.0/Microsoft AutoUpdate.app" ]
-    then 
+    then
         /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -R -f -trusted "/Library/Application Support/Microsoft/MAU2.0/Microsoft AutoUpdate.app"
 fi
 
 if [ -e "/Library/Application Support/Microsoft/MAU2.0/Microsoft AutoUpdate.app/Contents/MacOS/Microsoft AU Daemon.app" ]
-    then 
+    then
         /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -R -f -trusted "/Library/Application Support/Microsoft/MAU2.0/Microsoft AutoUpdate.app/Contents/MacOS/Microsoft AU Daemon.app"
 fi
 
@@ -38,12 +38,3 @@ defaults delete /Library/Preferences/com.microsoft.autoupdate2
 /usr/bin/defaults write /Library/Preferences/com.microsoft.Powerpoint kSubUIAppCompletedFirstRunSetup1507 -bool true
 /usr/bin/defaults write /Library/Preferences/com.microsoft.Outlook kSubUIAppCompletedFirstRunSetup1507 -bool true
 /usr/bin/defaults write /Library/Preferences/com.microsoft.onenote.mac kSubUIAppCompletedFirstRunSetup1507 -bool true
-
-## NOT USED see config profile: Set Caching Server preferences
-#/usr/bin/defaults write /Library/Preferences/com.microsoft.autoupdate2 ChannelName -string 'Production'
-#/usr/bin/defaults write /Library/Preferences/com.microsoft.autoupdate2 ManifestServer -string 'https://vp-acs-01.viewpoint.org/MSOffice2016Updates/'
-#/usr/bin/defaults write /Library/Preferences/com.microsoft.autoupdate2 UpdateCache -string 'https://vp-acs-01.viewpoint.org/MSOffice2016Updates/'
-#/usr/bin/defaults write /Library/Preferences/com.microsoft.autoupdate2 DisableInsiderCheckbox -bool TRUE
-#/usr/bin/defaults write /Library/Preferences/com.microsoft.autoupdate2 HowToCheck AutomaticDownload
-#/usr/bin/defaults write /Library/Preferences/com.microsoft.autoupdate2 StartDaemonOnAppLaunch -bool TRUE
-

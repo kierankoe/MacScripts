@@ -1,0 +1,11 @@
+msOfficeConfig_scratch
+
+
+
+## NOT USED see config profile: Set Caching Server preferences
+#/usr/bin/defaults write /Library/Preferences/com.microsoft.autoupdate2 ChannelName -string 'Production'
+#/usr/bin/defaults write /Library/Preferences/com.microsoft.autoupdate2 ManifestServer -string 'https://server/MSOffice2016Updates/'
+#/usr/bin/defaults write /Library/Preferences/com.microsoft.autoupdate2 UpdateCache -string 'https://server/MSOffice2016Updates/'
+#/usr/bin/defaults write /Library/Preferences/com.microsoft.autoupdate2 DisableInsiderCheckbox -bool TRUE
+#/usr/bin/defaults write /Library/Preferences/com.microsoft.autoupdate2 HowToCheck AutomaticDownload
+#/usr/bin/defaults write /Library/Preferences/com.microsoft.autoupdate2 StartDaemonOnAppLaunch -bool TRUE
