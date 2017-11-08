@@ -1,0 +1,46 @@
+#!/bin/bash
+
+# Gets Google Drive Share URL from JSS
+url="${4}"
+
+# Temporary save path for the payload
+savePath=/tmp/payload.zip
+
+# Temporary extraction directory for the payload
+extractionPath=/tmp/payload_extract/
+
+# Adapted from: http://stackoverflow.com/questions/25010369/wget-curl-large-file-from-google-drive
+ggID=$(echo ${url} | egrep -o '(\w|-){26,}')  
+ggURL='https://drive.google.com/uc?export=download'  
+filename="$(curl -sc /tmp/gcokie "${ggURL}&id=${ggID}" | grep -o '="uc-name.*</span>' | sed 's/.*">//;s/<.a> .*//')"  
+getcode="$(awk '/_warning_/ {print $NF}' /tmp/gcokie)"  
+curl -LJb /tmp/gcokie "${ggURL}&confirm=${getcode}&id=${ggID}" > ${savePath}
+
+# Create extraction directory
+mkdir ${extractionPath}
+
+# Extract zip file
+echo "Extracting $savePath to $extractionPath..."
+unzip -o -qq ${savePath} -d ${extractionPath}
+
+# Checks if each file extracted from the zip is an APP or PKG and responds accordingly
+for file in ${extractionPath}*
+do
+    if [[ $file == *.app ]]
+    then
+        echo "File $file is an APP"
+        echo "Copying $file to /Applications/"
+        cp -r "$file" /Applications/ > /dev/null 2>&1
+    elif [[ ($file == *.pkg) || ($file == *.mpkg) ]] 
+    then
+        echo "File $file is a PKG"
+        echo "Installing $file"
+        installer -pkg "${file}" -target /
+    fi
+done
+
+# Cleanup
+echo "Cleanup: Removing temporary files and directories..."
+rm ${savePath}
+rm -r ${extractionPath}
+echo "Cleanup: $savePath and $extractionPath were removed."
