@@ -1,0 +1,45 @@
+#!/bin/bash
+
+# Returns the username of the currently logged-in User
+user=`python -c 'from SystemConfiguration import SCDynamicStoreCopyConsoleUser; import sys; username = (SCDynamicStoreCopyConsoleUser(None, None, None) or [None])[0]; username = [username,""][username in [u"loginwindow", None, u""]]; sys.stdout.write(username + "\n");'`
+
+# Creates an auto-resolving Alias on User's desktop
+if [ -f Users/${user}/Desktop/"${5}" ]
+then
+	echo "Drive already exists."
+else
+echo "in else"
+    # Create mount point for Home Drive
+mkdir /Volumes/"${5}"
+chown "$user" /Volumes/"${5}"
+
+# Format path correctly for mount command
+#drivePath = ${4} # | awk -F 'smb://' '{print $2}'
+
+# Mount Home Drive
+sudo -u ${user} mount -t smbfs //${user}@${4// /%20} /Volumes/"${5}"
+
+sudo -u $user osascript <<EOF
+set mount_point to "/Volumes/${5}"
+set alias_location to "/Users/${user}/Desktop"
+set alias_name to "${5}"
+tell application "Finder"
+    make new alias to (posix file mount_point) as alias at (posix file alias_location)
+	set name of result to alias_name
+end tell
+EOF
+    if command -v sfltool>/dev/null 2>&1; then 
+    
+        if [ $(sfltool dump-storage /Users/${user}/Library/Application\ Support/com.apple.sharedfilelist/com.apple.LSSharedFileList.FavoriteItems.sfl | grep -q /Users/${user}/Desktop/"${5}") ] 
+        then
+            echo "N Drive already in sidebar"
+        else
+        # Add drive to Finder Sidebar
+        echo "Adding to sidebar"
+        sudo -u ${user} sfltool add-item com.apple.LSSharedFileList.FavoriteItems file:///Users/${user}/Desktop/"${5// /%20}"
+        fi
+    else
+        echo "sfltool does not exist on the system."
+    fi
+    
+fi
