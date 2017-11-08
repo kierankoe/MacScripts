@@ -1,0 +1,64 @@
+#!/bin/bash
+
+# Returns the username of the currently logged-in User
+user=`python -c 'from SystemConfiguration import SCDynamicStoreCopyConsoleUser; import sys; username = (SCDynamicStoreCopyConsoleUser(None, None, None) or [None])[0]; username = [username,""][username in [u"loginwindow", None, u""]]; sys.stdout.write(username + "\n");'`
+
+path=$(/usr/bin/osascript<<END
+tell application "System Events"
+activate
+set the answer to text returned of (display dialog "Enter Network Path excluding smb:// protocol (e.g., viewpoint.org/public/vpfavorites)" default answer "" buttons {"Continue"} default button "Continue")
+end tell
+END)
+
+
+name=$(/usr/bin/osascript<<END
+tell application "System Events"
+activate
+set the answer to text returned of (display dialog "Enter Name of Share (e.g., US English Share)" default answer "" buttons {"Continue"}default button "Continue")
+end tell
+END)
+
+echo The path is: $path
+echo The name is: $name
+
+
+# Creates an auto-resolving Alias on User's desktop
+if [ -f Users/${user}/Desktop/"${name}" ]
+then
+	echo "Drive already exists."
+else
+echo "in else"
+	# Create mount point for Home Drive
+mkdir /Volumes/"${name}"
+chown "$user" /Volumes/"${name}"
+
+# Format path correctly for mount command
+#drivePath = ${4} # | awk -F 'smb://' '{print $2}'
+
+# Mount Home Drive
+sudo -u ${user} mount -t smbfs //${user}@${path// /%20} /Volumes/"${name}"
+
+sudo -u $user osascript <<EOF
+set mount_point to "/Volumes/${name}"
+set alias_location to "/Users/${user}/Desktop"
+set alias_name to "${name}"
+tell application "Finder"
+	make new alias to (posix file mount_point) as alias at (posix file alias_location)
+	set name of result to alias_name
+end tell
+EOF
+	if command -v sfltool>/dev/null 2>&1; then 
+	
+		if [ $(sfltool dump-storage /Users/${user}/Library/Application\ Support/com.apple.sharedfilelist/com.apple.LSSharedFileList.FavoriteItems.sfl | grep -q /Users/${user}/Desktop/"${name}") ] 
+		then
+			echo "N Drive already in sidebar"
+		else
+		# Add drive to Finder Sidebar
+		echo "Adding to sidebar"
+		sudo -u ${user} sfltool add-item com.apple.LSSharedFileList.FavoriteItems file:///Users/${user}/Desktop/"${name// /%20}"
+		fi
+	else
+		echo "sfltool does not exist on the system."
+	fi
+	
+fi
