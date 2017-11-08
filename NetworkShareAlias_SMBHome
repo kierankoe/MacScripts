@@ -1,0 +1,41 @@
+#!/bin/bash
+
+# Returns the username of the currently logged-in User
+user=`python -c 'from SystemConfiguration import SCDynamicStoreCopyConsoleUser; import sys; username = (SCDynamicStoreCopyConsoleUser(None, None, None) or [None])[0]; username = [username,""][username in [u"loginwindow", None, u""]]; sys.stdout.write(username + "\n");'`
+
+# Creates an auto-resolving Alias on User's desktop
+if [ -f Users/${user}/Desktop/${user} ]
+then
+	echo "N Drive already exists."
+else
+
+# Returns correctly formatted Samba path to Active Directory User Home Folder
+userNetworkDrivePath=$(dscl localhost -read /Search/Users/${user} SMBHome | head -n 1 | cut -c 12- | sed 's/\\/\//g')
+
+# Create mount point for Home Drive
+mkdir /Volumes/${user}
+chown ${user} /Volumes/${user}
+
+# Mount Home Drive
+sudo -u ${user} mount -t smbfs //${user}@${userNetworkDrivePath} /Volumes/${user}
+
+sudo -u $user osascript <<EOF
+set mount_point to "/Volumes/${user}"
+set alias_location to "/Users/${user}/Desktop"
+set alias_name to "${user}"
+tell application "Finder"
+    make new alias to (posix file mount_point) as alias at (posix file alias_location)
+	set name of result to alias_name
+end tell
+EOF
+
+fi
+
+if [ $(sfltool dup-storage /Users/${user}/Library/Application\ Support/com.apple.sharedfilelist/com.apple.LSSharedFileList.FavoriteItems.sfl | grep -q /Users/${user}/Desktop/${user}) ]
+
+then
+    echo "N Drive already in sidebar"
+else
+# Add drive to Finder Sidebar
+sudo -u ${user} sfltool add-item com.apple.LSSharedFileList.FavoriteItems file:///Users/${user}/Desktop/${user}
+fi
